@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sterling Tree Installation Estimator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0d1b2a;
+      color: #e8eaf0;
+      min-height: 100vh;
+      padding: 24px 16px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      color: #fff;
+      letter-spacing: 0.5px;
+    }
+
+    header p {
+      color: #8fa3b1;
+      margin-top: 6px;
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background: #1a2a3a;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 860px;
+      margin: 0 auto 24px;
+      border: 1px solid #2a3d52;
+    }
+
+    .card h2 {
+      font-size: 1.05rem;
+      color: #7eb8d4;
+      margin-bottom: 18px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Tree size selector */
+    .size-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 10px;
+    }
+
+    .size-btn {
+      background: #243447;
+      border: 2px solid #2a3d52;
+      border-radius: 8px;
+      color: #c9d8e4;
+      font-size: 1.05rem;
+      font-weight: 600;
+      padding: 14px 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+
+    .size-btn:hover {
+      border-color: #4a9ebb;
+      background: #2c4460;
+      color: #fff;
+    }
+
+    .size-btn.active {
+      border-color: #4a9ebb;
+      background: #1b5c7a;
+      color: #fff;
+    }
+
+    /* Crew config */
+    .crew-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 500px) {
+      .crew-grid { grid-template-columns: 1fr; }
+    }
+
+    .field label {
+      display: block;
+      font-size: 0.85rem;
+      color: #8fa3b1;
+      margin-bottom: 6px;
+    }
+
+    .field input[type="number"],
+    .field select {
+      width: 100%;
+      background: #243447;
+      border: 1px solid #2a3d52;
+      border-radius: 6px;
+      color: #e8eaf0;
+      font-size: 1rem;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .field input:focus, .field select:focus {
+      border-color: #4a9ebb;
+    }
+
+    .field input[type="range"] {
+      width: 100%;
+      accent-color: #4a9ebb;
+      margin-top: 6px;
+    }
+
+    .range-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .range-row span {
+      font-size: 0.95rem;
+      color: #fff;
+      font-weight: 600;
+      min-width: 28px;
+      text-align: right;
+    }
+
+    /* Results panel */
+    .results {
+      display: none;
+    }
+
+    .results.visible {
+      display: block;
+    }
+
+    .time-hero {
+      text-align: center;
+      padding: 20px 0 10px;
+    }
+
+    .time-hero .label {
+      font-size: 0.9rem;
+      color: #8fa3b1;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .time-hero .value {
+      font-size: 3rem;
+      font-weight: 700;
+      color: #4dd0e1;
+      line-height: 1.1;
+      margin: 6px 0 2px;
+    }
+
+    .time-hero .range {
+      font-size: 0.9rem;
+      color: #8fa3b1;
+    }
+
+    .breakdown {
+      margin-top: 20px;
+      border-top: 1px solid #2a3d52;
+      padding-top: 20px;
+    }
+
+    .breakdown h3 {
+      font-size: 0.85rem;
+      color: #7eb8d4;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+    }
+
+    .phase {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+
+    .phase-label {
+      flex: 0 0 180px;
+      font-size: 0.88rem;
+      color: #c9d8e4;
+    }
+
+    .phase-bar-wrap {
+      flex: 1;
+      background: #243447;
+      border-radius: 4px;
+      height: 8px;
+      overflow: hidden;
+    }
+
+    .phase-bar {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #1b6ca8, #4dd0e1);
+      transition: width 0.4s ease;
+    }
+
+    .phase-time {
+      flex: 0 0 60px;
+      text-align: right;
+      font-size: 0.85rem;
+      color: #8fa3b1;
+    }
+
+    .specs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .spec-chip {
+      background: #243447;
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+
+    .spec-chip .sc-label {
+      font-size: 0.75rem;
+      color: #8fa3b1;
+    }
+
+    .spec-chip .sc-value {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #e8eaf0;
+      margin-top: 2px;
+    }
+
+    .tip-box {
+      background: #1e3a2a;
+      border: 1px solid #2a5a3a;
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 0.88rem;
+      color: #a8d5b5;
+      line-height: 1.6;
+      margin-top: 16px;
+    }
+
+    .tip-box strong {
+      color: #6bcf8e;
+    }
+
+    .no-selection {
+      text-align: center;
+      padding: 32px;
+      color: #4a6070;
+      font-size: 0.95rem;
+    }
+
+    /* Proposal card */
+    .proposal-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 500px) {
+      .proposal-inputs { grid-template-columns: 1fr; }
+    }
+
+    .rate-input-wrap {
+      position: relative;
+    }
+
+    .rate-input-wrap .prefix {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #8fa3b1;
+      font-size: 1rem;
+      pointer-events: none;
+    }
+
+    .rate-input-wrap input {
+      padding-left: 24px !important;
+    }
+
+    .proposal-summary {
+      background: #0d1b2a;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .proposal-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 7px 0;
+      border-bottom: 1px solid #1a2a3a;
+      font-size: 0.92rem;
+    }
+
+    .proposal-line:last-child { border-bottom: none; }
+
+    .proposal-line .pl-label { color: #8fa3b1; }
+    .proposal-line .pl-value { color: #e8eaf0; font-weight: 600; }
+    .proposal-line.total .pl-label { color: #c9d8e4; font-size: 1rem; }
+    .proposal-line.total .pl-value { color: #4dd0e1; font-size: 1.25rem; }
+
+    .coming-soon-box {
+      border: 1px dashed #2a3d52;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      color: #4a6070;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .coming-soon-box .cs-title {
+      color: #5a7080;
+      font-weight: 600;
+      margin-bottom: 4px;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Sterling Outdoor Frame Tree</h1>
+  <p>Installation Time Estimator</p>
+</header>
+
+<!-- Tree Size Selection -->
+<div class="card">
+  <h2>Select Tree Size</h2>
+  <div class="size-grid" id="sizeGrid"></div>
+</div>
+
+<!-- Crew Configuration -->
+<div class="card">
+  <h2>Crew &amp; Conditions</h2>
+  <div class="crew-grid">
+    <div class="field">
+      <label>Number of workers</label>
+      <div class="range-row">
+        <input type="range" id="crewSize" min="1" max="20" value="4" oninput="updateCrew(this)" />
+        <span id="crewLabel">4</span>
+      </div>
+    </div>
+    <div class="field" style="grid-column: 1 / -1;">
+      <label>Experience level — <span id="expLabel" style="color:#4dd0e1;font-weight:600;">Some experience</span> <span id="expMult" style="color:#8fa3b1;font-size:0.8rem;"></span></label>
+      <input type="range" id="experience" min="1" max="10" value="5" step="1"
+             oninput="updateExp(this)" style="margin-top:8px;" />
+      <div style="display:flex;justify-content:space-between;font-size:0.72rem;color:#4a6070;margin-top:4px;">
+        <span>Absolute beginner</span>
+        <span>Expert installer</span>
+      </div>
+    </div>
+    <div class="field">
+      <label>Lift / equipment available</label>
+      <select id="lift" onchange="recalculate()">
+        <option value="1.0" selected>Yes – lift or scaffolding</option>
+        <option value="1.35">No – ladders only</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Working conditions</label>
+      <select id="conditions" onchange="recalculate()">
+        <option value="1.0" selected>Good (dry, mild)</option>
+        <option value="1.15">Moderate (light wind / cool)</option>
+        <option value="1.35">Difficult (cold, wind, rain)</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- Results -->
+<div class="card results" id="results">
+  <h2>Estimated Installation Time</h2>
+
+  <div class="time-hero">
+    <div class="label">Total crew-hours</div>
+    <div class="value" id="totalHours">—</div>
+    <div class="range" id="timeRange"></div>
+  </div>
+
+  <div class="breakdown">
+    <h3>Phase Breakdown</h3>
+    <div id="phases"></div>
+  </div>
+
+  <div style="margin-top: 20px;">
+    <div class="breakdown">
+      <h3>Tree Specs</h3>
+      <div class="specs-grid" id="specsGrid"></div>
+    </div>
+  </div>
+
+  <div class="tip-box" id="tipBox"></div>
+</div>
+
+<div class="no-selection" id="noSelection">Select a tree size above to see your estimate</div>
+
+<!-- Proposal Estimator -->
+<div class="card results" id="proposalCard">
+  <h2>Labor Proposal Estimator</h2>
+
+  <div class="proposal-inputs">
+    <div class="field">
+      <label>Labor rate ($/hr per worker)</label>
+      <div class="rate-input-wrap">
+        <span class="prefix">$</span>
+        <input type="number" id="laborRate" value="35" min="1" step="1"
+               oninput="recalcProposal()"
+               style="width:100%;background:#243447;border:1px solid #2a3d52;border-radius:6px;color:#e8eaf0;font-size:1rem;padding:10px 12px;outline:none;" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Overhead / markup</label>
+      <select id="markup" onchange="recalcProposal()"
+              style="width:100%;background:#243447;border:1px solid #2a3d52;border-radius:6px;color:#e8eaf0;font-size:1rem;padding:10px 12px;outline:none;">
+        <option value="1.0">None (0%)</option>
+        <option value="1.1">10%</option>
+        <option value="1.15">15%</option>
+        <option value="1.2" selected>20%</option>
+        <option value="1.25">25%</option>
+        <option value="1.3">30%</option>
+        <option value="1.4">40%</option>
+        <option value="1.5">50%</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="proposal-summary">
+    <div class="proposal-line">
+      <span class="pl-label">Est. install time (wall clock)</span>
+      <span class="pl-value" id="p-wallclock">—</span>
+    </div>
+    <div class="proposal-line">
+      <span class="pl-label">Total person-hours billed</span>
+      <span class="pl-value" id="p-personhours">—</span>
+    </div>
+    <div class="proposal-line">
+      <span class="pl-label">Labor rate</span>
+      <span class="pl-value" id="p-rate">—</span>
+    </div>
+    <div class="proposal-line">
+      <span class="pl-label">Labor subtotal</span>
+      <span class="pl-value" id="p-subtotal">—</span>
+    </div>
+    <div class="proposal-line">
+      <span class="pl-label">Markup</span>
+      <span class="pl-value" id="p-markup">—</span>
+    </div>
+    <div class="proposal-line total">
+      <span class="pl-label">Labor total</span>
+      <span class="pl-value" id="p-total">—</span>
+    </div>
+  </div>
+
+  <div class="coming-soon-box">
+    <div class="cs-title">Tree Cost — Coming Soon</div>
+    Purchase price and multi-year lease options will be added here,
+    allowing you to build a full project proposal with equipment + labor in one place.
+  </div>
+</div>
+
+<script>
+  const TREES = [
+    { size: "12'",  ft: 12,  branches: 17,  tips: 5694,  litCount: 3100,  boxes: 4,  watts: 2.08,  frameDia: 24,  totalDia: 96  },
+    { size: "14'",  ft: 14,  branches: 25,  tips: 8254,  litCount: 4300,  boxes: 7,  watts: 2.88,  frameDia: 36,  totalDia: 108 },
+    { size: "16'",  ft: 16,  branches: 35,  tips: 11454, litCount: 5800,  boxes: 7,  watts: 3.88,  frameDia: 48,  totalDia: 120 },
+    { size: "18'",  ft: 18,  branches: 47,  tips: 15294, litCount: 7600,  boxes: 9,  watts: 5.08,  frameDia: 60,  totalDia: 132 },
+    { size: "20'",  ft: 20,  branches: 62,  tips: 20094, litCount: 9850,  boxes: 12, watts: 6.58,  frameDia: 72,  totalDia: 144 },
+    { size: "22'",  ft: 22,  branches: 80,  tips: 25854, litCount: 12550, boxes: 15, watts: 8.38,  frameDia: 84,  totalDia: 156 },
+    { size: "24'",  ft: 24,  branches: 101, tips: 32574, litCount: 15700, boxes: 19, watts: 10.48, frameDia: 96,  totalDia: 168 },
+    { size: "26'",  ft: 26,  branches: 125, tips: 40254, litCount: 19300, boxes: 23, watts: 12.88, frameDia: 108, totalDia: 180 },
+    { size: "28'",  ft: 28,  branches: 152, tips: 48894, litCount: 23350, boxes: 27, watts: 15.58, frameDia: 120, totalDia: 192 },
+    { size: "30'",  ft: 30,  branches: 182, tips: 58494, litCount: 27850, boxes: 33, watts: 18.58, frameDia: 132, totalDia: 204 },
+    { size: "32'",  ft: 32,  branches: 215, tips: 69054, litCount: 32800, boxes: 38, watts: 21.88, frameDia: 144, totalDia: 216 },
+    { size: "34'",  ft: 34,  branches: 251, tips: 80574, litCount: 38200, boxes: 44, watts: 25.48, frameDia: 156, totalDia: 228 },
+    { size: "36'",  ft: 36,  branches: 290, tips: 93054, litCount: 44050, boxes: 51, watts: 29.38, frameDia: 168, totalDia: 240 },
+    { size: "38'",  ft: 38,  branches: 332, tips: 106494,litCount: 50350, boxes: 58, watts: 33.58, frameDia: 180, totalDia: 252 },
+    { size: "40'",  ft: 40,  branches: 377, tips: 120894,litCount: 57100, boxes: 66, watts: 38.08, frameDia: 192, totalDia: 264 },
+    { size: "42'",  ft: 42,  branches: 425, tips: 136254,litCount: 64300, boxes: 74, watts: 42.88, frameDia: 204, totalDia: 276 },
+    { size: "44'",  ft: 44,  branches: 476, tips: 152574,litCount: 71950, boxes: 82, watts: 47.98, frameDia: 216, totalDia: 288 },
+    { size: "46'",  ft: 46,  branches: 530, tips: 169854,litCount: 80050, boxes: 91, watts: 53.38, frameDia: 228, totalDia: 300 },
+    { size: "48'",  ft: 48,  branches: 587, tips: 188094,litCount: 88600, boxes: 100,watts: 59.08, frameDia: 240, totalDia: 312 },
+    { size: "50'",  ft: 50,  branches: 647, tips: 207294,litCount: 97600, boxes: 111,watts: 65.08, frameDia: 252, totalDia: 324 },
+  ];
+
+  // Height difficulty: work at elevation slows linearly above 12'.
+  // At 50' the at-height phases take ~1.6x longer than at 12', even with a lift.
+  function heightMult(ft) {
+    return 1 + 0.015 * (ft - 12);
+  }
+
+  // Base times in person-minutes (for 1 worker, ground-level baseline)
+  function calcPhases(tree) {
+    const hm = heightMult(tree.ft);
+    return [
+      { label: "Site prep & unboxing",         mins: 30 + tree.boxes * 14,            heightApplied: false },
+      { label: "Frame assembly",                mins: (60 + tree.branches * 2.3) * hm, heightApplied: true  },
+      { label: "Branch attachment",             mins: tree.branches * 3.5 * hm,        heightApplied: true  },
+      { label: "Tip fluffing",                  mins: (tree.tips / 100) * 4 * hm,      heightApplied: true  },
+      { label: "Electrical check & test",       mins: 15 + (tree.litCount / 1000) * 5, heightApplied: false },
+      { label: "Final shaping & cleanup",       mins: (20 + tree.branches * 0.8) * hm, heightApplied: true  },
+    ];
+  }
+
+  let selectedTree = null;
+
+  // Build size buttons
+  const grid = document.getElementById('sizeGrid');
+  TREES.forEach((t, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'size-btn';
+    btn.textContent = t.size;
+    btn.onclick = () => selectTree(i, btn);
+    grid.appendChild(btn);
+  });
+
+  function selectTree(idx, btn) {
+    document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedTree = TREES[idx];
+    recalculate();
+  }
+
+  const EXP_LEVELS = [
+    { label: "Absolute beginner — never done this",      mult: 2.0  },
+    { label: "First time with this type of tree",        mult: 1.65 },
+    { label: "Done a frame tree once before",            mult: 1.35 },
+    { label: "A few installs, still learning",           mult: 1.15 },
+    { label: "Some experience",                          mult: 1.0  },
+    { label: "Comfortable with frame trees",             mult: 0.85 },
+    { label: "Experienced — done 5+ installs",           mult: 0.72 },
+    { label: "Very experienced crew",                    mult: 0.60 },
+    { label: "Done this exact tree before",              mult: 0.50 },
+    { label: "Expert — annual install, tight team",      mult: 0.40 },
+  ];
+
+  function updateExp(el) {
+    const lvl = EXP_LEVELS[parseInt(el.value) - 1];
+    document.getElementById('expLabel').textContent = lvl.label;
+    document.getElementById('expMult').textContent = `(${lvl.mult}× base time)`;
+    recalculate();
+  }
+
+  // Init label on load
+  updateExp(document.getElementById('experience'));
+
+  function updateCrew(el) {
+    document.getElementById('crewLabel').textContent = el.value;
+    recalculate();
+  }
+
+  function fmtMins(m) {
+    const h = Math.floor(m / 60);
+    const min = Math.round(m % 60);
+    if (h === 0) return `${min}m`;
+    if (min === 0) return `${h}h`;
+    return `${h}h ${min}m`;
+  }
+
+  function recalculate() {
+    if (!selectedTree) return;
+
+    const crew    = parseInt(document.getElementById('crewSize').value);
+    const expMult = EXP_LEVELS[parseInt(document.getElementById('experience').value) - 1].mult;
+    const liftMult= parseFloat(document.getElementById('lift').value);
+    const condMult= parseFloat(document.getElementById('conditions').value);
+
+    const phases = calcPhases(selectedTree);
+    const multiplier = expMult * liftMult * condMult;
+
+    // Apply multiplier, then divide by crew (parallel work), with diminishing returns above 6
+    const effectiveCrew = crew <= 6 ? crew : 6 + (crew - 6) * 0.5;
+
+    const adjustedPhases = phases.map(p => ({
+      ...p,
+      adjusted: (p.mins * multiplier) / effectiveCrew
+    }));
+
+    const totalMins = adjustedPhases.reduce((s, p) => s + p.adjusted, 0);
+    const totalHoursVal = totalMins / 60;
+    const low  = totalHoursVal * 0.85;
+    const high = totalHoursVal * 1.2;
+
+    // Show results
+    document.getElementById('results').classList.add('visible');
+    document.getElementById('noSelection').style.display = 'none';
+
+    document.getElementById('totalHours').textContent =
+      totalHoursVal < 1
+        ? fmtMins(totalMins)
+        : `${totalHoursVal.toFixed(1)}h`;
+
+    document.getElementById('timeRange').textContent =
+      `Likely range: ${low.toFixed(1)}h – ${high.toFixed(1)}h`;
+
+    // Phase bars
+    const maxAdj = Math.max(...adjustedPhases.map(p => p.adjusted));
+    const phasesEl = document.getElementById('phases');
+    phasesEl.innerHTML = adjustedPhases.map(p => {
+      const pct = maxAdj > 0 ? (p.adjusted / maxAdj) * 100 : 0;
+      return `
+        <div class="phase">
+          <div class="phase-label">${p.label}</div>
+          <div class="phase-bar-wrap">
+            <div class="phase-bar" style="width:${pct}%"></div>
+          </div>
+          <div class="phase-time">${fmtMins(p.adjusted)}</div>
+        </div>`;
+    }).join('');
+
+    // Specs
+    const t = selectedTree;
+    document.getElementById('specsGrid').innerHTML = `
+      <div class="spec-chip"><div class="sc-label">Height</div><div class="sc-value">${t.size}</div></div>
+      <div class="spec-chip"><div class="sc-label">Branches</div><div class="sc-value">${t.branches.toLocaleString()}</div></div>
+      <div class="spec-chip"><div class="sc-label">Tips</div><div class="sc-value">${t.tips.toLocaleString()}</div></div>
+      <div class="spec-chip"><div class="sc-label">Lit Count</div><div class="sc-value">${t.litCount.toLocaleString()}</div></div>
+      <div class="spec-chip"><div class="sc-label">Boxes</div><div class="sc-value">${t.boxes}</div></div>
+      <div class="spec-chip"><div class="sc-label">Frame Dia.</div><div class="sc-value">${t.frameDia}"</div></div>
+      <div class="spec-chip"><div class="sc-label">Total Dia.</div><div class="sc-value">${t.totalDia}"</div></div>
+      <div class="spec-chip"><div class="sc-label">Amps</div><div class="sc-value">${t.watts}A</div></div>
+    `;
+
+    // Tips
+    const tips = [];
+    if (t.boxes > 10) tips.push(`<strong>${t.boxes} boxes</strong> — stage them near the site before starting.`);
+    if (crew < 4 && t.branches > 100) tips.push(`A ${t.size} tree has ${t.branches} branches — consider adding more crew.`);
+    if (t.size.replace("'","") >= 30) tips.push(`Trees 30'+ require a <strong>boom lift or scaffold</strong> for safe upper-branch work.`);
+    tips.push(`Allow <strong>15–30 min</strong> for electrical testing and power circuit verification (${t.watts}A draw).`);
+    if (t.tips > 50000) tips.push(`With ${t.tips.toLocaleString()} tips, tip-fluffing is your biggest time sink — assign your largest sub-crew to it.`);
+
+    document.getElementById('tipBox').innerHTML = tips.map(t => `• ${t}`).join('<br/>');
+
+    // Store for proposal use
+    window._lastCalc = { totalHoursVal, crew };
+    recalcProposal();
+  }
+  function recalcProposal() {
+    if (!window._lastCalc) return;
+    const { totalHoursVal, crew } = window._lastCalc;
+    const rate    = parseFloat(document.getElementById('laborRate').value) || 0;
+    const markup  = parseFloat(document.getElementById('markup').value);
+
+    const personHours = totalHoursVal * crew;
+    const subtotal    = personHours * rate;
+    const markupAmt   = subtotal * (markup - 1);
+    const total       = subtotal * markup;
+
+    const fmt = v => '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    document.getElementById('proposalCard').classList.add('visible');
+    document.getElementById('p-wallclock').textContent   = `${totalHoursVal.toFixed(1)}h`;
+    document.getElementById('p-personhours').textContent = `${personHours.toFixed(1)} hrs`;
+    document.getElementById('p-rate').textContent        = `${fmt(rate)} / hr`;
+    document.getElementById('p-subtotal').textContent    = fmt(subtotal);
+    document.getElementById('p-markup').textContent      = `${fmt(markupAmt)} (${Math.round((markup-1)*100)}%)`;
+    document.getElementById('p-total').textContent       = fmt(total);
+  }
+</script>
+</body>
+</html>
