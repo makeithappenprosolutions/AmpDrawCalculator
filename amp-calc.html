@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amp Draw Calculator — Christmas Decor</title>
+  <style>
+    :root {
+      --red: #BE1E2D;
+      --red-dark: #8B1120;
+      --red-light: #D94455;
+      --green: #3A7D44;
+      --green-dark: #255C2E;
+      --green-light: #52A862;
+      --bg: #0C0C0C;
+      --card: #161616;
+      --border: #242424;
+      --text: #F0ECEA;
+      --muted: #6A6060;
+      --warm: #E8D5B0;
+      --gold: #C8A84B;
+      --blue: #3B82F6;
+      --blue-dark: #1E3A5F;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 56px; }
+
+    /* ── Header ── */
+    .hdr { background: #0A0A0A; border-bottom: 2px solid var(--red); padding: 18px 20px; text-align: center; }
+    .hdr-brand { font-size: 0.7rem; letter-spacing: 3px; color: var(--red); text-transform: uppercase; margin-bottom: 6px; }
+    .hdr-title { font-size: 1.5rem; font-weight: 700; color: #fff; }
+    .hdr-title span { color: var(--red); }
+    .hdr-sub { font-size: 0.8rem; color: var(--muted); margin-top: 3px; }
+
+    /* ── Layout ── */
+    .wrap { max-width: 760px; margin: 0 auto; padding: 20px 14px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 14px; }
+    .ctitle { font-size: 0.72rem; color: var(--red); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700;
+              margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .ctitle::after { content:''; flex:1; height:1px; background: var(--border); }
+    .ctitle.green { color: var(--green-light); }
+    .ctitle.blue { color: #60A5FA; }
+
+    /* ── Light type selector ── */
+    .type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+    @media(max-width:480px){ .type-grid { grid-template-columns: repeat(2, 1fr); } }
+    .tbtn {
+      background: #1A1A1A; border: 1px solid var(--border); border-radius: 9px;
+      color: var(--muted); cursor: pointer; padding: 13px 8px; text-align: center;
+      transition: all .15s; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .tbtn:hover { border-color: #444; color: var(--text); }
+    .tbtn.on { border-color: var(--red); background: #1E0A0E; color: #fff; }
+    .tbtn .tb-icon { font-size: 1.4rem; }
+    .tbtn .tb-name { font-size: 0.82rem; font-weight: 700; }
+    .tbtn .tb-sub { font-size: 0.67rem; color: var(--muted); }
+    .tbtn.on .tb-sub { color: #9A7070; }
+    .tbtn .tb-watts { font-size: 0.68rem; color: var(--gold); margin-top: 2px; }
+
+    /* ── Strand mode toggle (mini only) ── */
+    .strand-toggle { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+    .strand-toggle-label { font-size: .67rem; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 9px; }
+    .mode-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .mbtn {
+      flex: 1; background: #1A1A1A; border: 1px solid var(--border); border-radius: 7px;
+      color: var(--muted); cursor: pointer; padding: 8px; text-align: center; font-size: .8rem; font-weight: 700;
+      transition: all .15s; letter-spacing: .5px;
+    }
+    .mbtn:hover { border-color: #444; color: var(--text); }
+    .mbtn.on { border-color: var(--red); background: #1E0A0E; color: #fff; }
+
+    /* strand size quick-picks */
+    .strand-sizes { display: flex; gap: 7px; flex-wrap: wrap; }
+    .ssbtn {
+      background: #1A1A1A; border: 1px solid var(--border); border-radius: 6px;
+      color: var(--muted); cursor: pointer; padding: 6px 13px; font-size: .78rem; font-weight: 700;
+      transition: all .15s;
+    }
+    .ssbtn:hover { border-color: #555; color: var(--text); }
+    .ssbtn.on { border-color: var(--gold); background: #1A1500; color: var(--gold); }
+
+    /* ── Inputs ── */
+    .fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media(max-width:480px){ .fgrid { grid-template-columns: 1fr; } }
+    .field label { display: block; font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 7px; }
+    .field input[type=number], .field select {
+      width: 100%; background: #1C1C1C; border: 1px solid var(--border); border-radius: 6px;
+      color: var(--text); font-size: 1rem; padding: 10px 12px; outline: none; transition: border-color .15s;
+      -moz-appearance: textfield;
+    }
+    .field input::-webkit-outer-spin-button,
+    .field input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .field input:focus, .field select:focus { border-color: var(--red); }
+    .field .hint { font-size: .67rem; color: #3E3E3E; margin-top: 5px; }
+    .field .computed-bulbs { font-size: .72rem; color: var(--gold); margin-top: 5px; font-weight: 700; }
+
+    /* ── Circuit type toggle ── */
+    .circ-row { display: flex; gap: 10px; }
+    .cbtn {
+      flex: 1; background: #1A1A1A; border: 1px solid var(--border); border-radius: 7px;
+      color: var(--muted); cursor: pointer; padding: 10px 8px; text-align: center; transition: all .15s;
+    }
+    .cbtn:hover { border-color: #444; color: var(--text); }
+    .cbtn.on { border-color: var(--green); background: #0C1A0E; color: #fff; }
+    .cbtn .cb-label { font-size: .82rem; font-weight: 700; }
+    .cbtn .cb-sub { font-size: .67rem; color: var(--muted); }
+    .cbtn.on .cb-sub { color: #4A7A50; }
+
+    /* ── Extension cord section ── */
+    .gauge-row { display: flex; gap: 9px; margin-bottom: 14px; }
+    .gbtn {
+      flex: 1; background: #1A1A1A; border: 1px solid var(--border); border-radius: 7px;
+      color: var(--muted); cursor: pointer; padding: 10px 8px; text-align: center; transition: all .15s;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .gbtn:hover { border-color: #444; color: var(--text); }
+    .gbtn.on { border-color: #3B82F6; background: #0A0F1A; color: #fff; }
+    .gbtn .gb-label { font-size: .85rem; font-weight: 700; }
+    .gbtn .gb-sub { font-size: .65rem; color: var(--muted); }
+    .gbtn .gb-cap { font-size: .65rem; color: #3B82F6; margin-top: 1px; }
+    .gbtn.on .gb-sub { color: #3A5A7A; }
+    .optional-label { font-size: .67rem; color: #2E2E2E; margin-bottom: 9px; }
+
+    /* ── Results ── */
+    .results-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    @media(max-width:400px){ .results-grid { grid-column: 1fr; } }
+    .rbox { background: #111; border: 1px solid #1E1E1E; border-radius: 8px; padding: 14px 16px; text-align: center; }
+    .rbox .rl { font-size: .67rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .rbox .rv { font-size: 1.9rem; font-weight: 700; line-height: 1.1; color: var(--red-light); }
+    .rbox .ru { font-size: .72rem; color: var(--muted); margin-top: 2px; }
+    .rbox.big { grid-column: 1 / -1; background: #0E0A0A; border-color: var(--red-dark); }
+    .rbox.big .rv { font-size: 2.6rem; color: #FF6B7A; }
+    .rbox.green { background: #090E0A; border-color: var(--green-dark); }
+    .rbox.green .rv { color: var(--green-light); }
+    .rbox.gold { background: #0E0C06; border-color: #5C4A10; }
+    .rbox.gold .rv { color: var(--gold); }
+    .rbox.blue { background: #070D17; border-color: #1E3A5F; }
+    .rbox.blue .rv { color: #60A5FA; }
+
+    /* voltage drop result strip */
+    .vd-strip { margin-top: 14px; background: #0A0A0A; border: 1px solid #1E1E1E; border-radius: 8px; overflow: hidden; }
+    .vd-title { font-size: .67rem; color: #444; text-transform: uppercase; letter-spacing: 1px; padding: 8px 14px; border-bottom: 1px solid #1A1A1A; }
+    .vd-grid { display: grid; grid-template-columns: repeat(3, 1fr); }
+    @media(max-width:420px){ .vd-grid { grid-template-columns: repeat(2, 1fr); } }
+    .vd-cell { padding: 12px 14px; text-align: center; border-right: 1px solid #1A1A1A; }
+    .vd-cell:last-child { border-right: none; }
+    .vd-cell .vcl { font-size: .63rem; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 3px; }
+    .vd-cell .vcv { font-size: 1.3rem; font-weight: 700; }
+    .vd-cell .vcu { font-size: .65rem; color: var(--muted); }
+    .vd-ok .vcv { color: var(--green-light); }
+    .vd-warn .vcv { color: var(--gold); }
+    .vd-danger .vcv { color: var(--red-light); }
+
+    /* ── Warning / Status bar ── */
+    .status { border-radius: 8px; padding: 12px 16px; font-size: .82rem; line-height: 1.5;
+              display: flex; align-items: flex-start; gap: 10px; margin-top: 14px; }
+    .status.ok { background: #090E0A; border: 1px solid var(--green-dark); color: var(--green-light); }
+    .status.warn { background: #0E0C06; border: 1px solid #5C4A10; color: var(--gold); }
+    .status.danger { background: #150508; border: 1px solid var(--red-dark); color: var(--red-light); }
+    .status.blue { background: #070D17; border: 1px solid #1E3A5F; color: #60A5FA; }
+    .status .si { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+    .status strong { color: inherit; }
+
+    /* ── Per-tree breakdown ── */
+    .breakdown { margin-top: 14px; }
+    .brow { display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 0; border-bottom: 1px solid #1A1A1A; font-size: .83rem; }
+    .brow:last-child { border-bottom: none; }
+    .brow .bk { color: var(--muted); }
+    .brow .bv { font-weight: 700; color: var(--text); }
+
+    /* ── Placeholder ── */
+    .placeholder { text-align: center; padding: 32px 20px; color: var(--muted); font-size: .88rem; }
+    .placeholder .pi { font-size: 2rem; margin-bottom: 10px; }
+
+    /* ── Footnote ── */
+    .footnote { font-size: .7rem; color: #2E2E2E; text-align: center; margin-top: 8px; line-height: 1.6; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-brand">Christmas Decor</div>
+  <div class="hdr-title">Amp Draw <span>Calculator</span></div>
+  <div class="hdr-sub">Multi-tree electrical load planner for franchise installs</div>
+</div>
+
+<div class="wrap">
+
+  <!-- Step 1: Light Type -->
+  <div class="card">
+    <div class="ctitle">Step 1 — Light Type</div>
+    <div class="type-grid" id="typeGrid">
+      <button class="tbtn on" data-type="mini-inc" onclick="selectType(this)">
+        <span class="tb-icon">&#x1F4A1;</span>
+        <span class="tb-name">Mini</span>
+        <span class="tb-sub">Incandescent</span>
+        <span class="tb-watts">0.4 W / bulb</span>
+      </button>
+      <button class="tbtn" data-type="mini-led" onclick="selectType(this)">
+        <span class="tb-icon">&#x2728;</span>
+        <span class="tb-name">Mini</span>
+        <span class="tb-sub">LED</span>
+        <span class="tb-watts">0.05 W / bulb</span>
+      </button>
+      <button class="tbtn" data-type="c7-inc" onclick="selectType(this)">
+        <span class="tb-icon">&#x1F536;</span>
+        <span class="tb-name">C7</span>
+        <span class="tb-sub">Incandescent</span>
+        <span class="tb-watts">5 W / bulb</span>
+      </button>
+      <button class="tbtn" data-type="c7-led" onclick="selectType(this)">
+        <span class="tb-icon">&#x1F7E2;</span>
+        <span class="tb-name">C7</span>
+        <span class="tb-sub">LED</span>
+        <span class="tb-watts">0.58 W / bulb</span>
+      </button>
+      <button class="tbtn" data-type="c9-inc" onclick="selectType(this)">
+        <span class="tb-icon">&#x1F534;</span>
+        <span class="tb-name">C9</span>
+        <span class="tb-sub">Incandescent</span>
+        <span class="tb-watts">7 W / bulb</span>
+      </button>
+      <button class="tbtn" data-type="c9-led" onclick="selectType(this)">
+        <span class="tb-icon">&#x1F7E1;</span>
+        <span class="tb-name">C9</span>
+        <span class="tb-sub">LED</span>
+        <span class="tb-watts">0.58 W / bulb</span>
+      </button>
+    </div>
+
+    <!-- Strand mode toggle — visible only for mini types -->
+    <div class="strand-toggle" id="strandToggle">
+      <div class="strand-toggle-label">Enter mini lights by:</div>
+      <div class="mode-row">
+        <button class="mbtn on" onclick="selectMode('bulbs', this)">Bulbs</button>
+        <button class="mbtn" onclick="selectMode('strands', this)">Strands</button>
+      </div>
+      <div id="strandSizeRow" class="hidden">
+        <div class="strand-toggle-label" style="margin-bottom:8px;">Strand size:</div>
+        <div class="strand-sizes">
+          <button class="ssbtn" data-count="35"  onclick="selectStrandSize(this)">35-ct</button>
+          <button class="ssbtn" data-count="50"  onclick="selectStrandSize(this)">50-ct</button>
+          <button class="ssbtn on" data-count="100" onclick="selectStrandSize(this)">100-ct</button>
+          <button class="ssbtn" data-count="150" onclick="selectStrandSize(this)">150-ct</button>
+          <button class="ssbtn" data-count="200" onclick="selectStrandSize(this)">200-ct</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Tree Config -->
+  <div class="card">
+    <div class="ctitle">Step 2 — Tree Configuration</div>
+    <div class="fgrid">
+      <div class="field">
+        <label>Number of Trees</label>
+        <input type="number" id="numTrees" min="1" max="500" placeholder="e.g. 10" oninput="calc()" />
+        <div class="hint">Total trees in this installation</div>
+      </div>
+      <div class="field">
+        <label>Distance Between Trees (ft)</label>
+        <input type="number" id="treeSpacing" min="0" max="500" placeholder="e.g. 6" oninput="calc()" />
+        <div class="hint">Center-to-center spacing in the row</div>
+      </div>
+      <div class="field" id="bulbField">
+        <label id="lightsLabel">Bulbs per Tree</label>
+        <input type="number" id="lightsPerTree" min="1" max="10000" placeholder="e.g. 300" oninput="calc()" />
+        <div class="hint" id="lightsHint">Total individual bulbs on one tree</div>
+      </div>
+      <div class="field hidden" id="strandField">
+        <label>Strands per Tree</label>
+        <input type="number" id="strandsPerTree" min="1" max="500" placeholder="e.g. 4" oninput="calc()" />
+        <div class="hint">Number of strands on one tree</div>
+        <div class="computed-bulbs" id="computedBulbs"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Circuit -->
+  <div class="card">
+    <div class="ctitle">Step 3 — Circuit / Outlet Type</div>
+    <div class="circ-row" id="circRow">
+      <button class="cbtn on" data-amps="15" onclick="selectCircuit(this)">
+        <div class="cb-label">15 A</div>
+        <div class="cb-sub">Standard outlet</div>
+      </button>
+      <button class="cbtn" data-amps="20" onclick="selectCircuit(this)">
+        <div class="cb-label">20 A</div>
+        <div class="cb-sub">Commercial / GFCI</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- Step 4: Extension Cord -->
+  <div class="card">
+    <div class="ctitle blue">Step 4 — Extension Cord <span style="font-size:.65rem;color:#2E2E2E;font-weight:400;letter-spacing:0;text-transform:none;margin-left:4px;">(optional)</span></div>
+    <div class="optional-label">Select your cord type and enter how far your outlet is from the trees. This calculates whether enough voltage reaches your lights.</div>
+    <div style="font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:9px;">What gauge is your extension cord?</div>
+    <div class="gauge-row">
+      <button class="gbtn" data-gauge="16" data-r="0.008032" data-maxamps="13" onclick="selectGauge(this)">
+        <span class="gb-label">16 AWG</span>
+        <span class="gb-sub">Standard holiday cord</span>
+        <span class="gb-cap">13 A max</span>
+      </button>
+      <button class="gbtn" data-gauge="14" data-r="0.005050" data-maxamps="15" onclick="selectGauge(this)">
+        <span class="gb-label">14 AWG</span>
+        <span class="gb-sub">Medium-duty orange cord</span>
+        <span class="gb-cap">15 A max</span>
+      </button>
+      <button class="gbtn" data-gauge="12" data-r="0.003176" data-maxamps="20" onclick="selectGauge(this)">
+        <span class="gb-label">12 AWG</span>
+        <span class="gb-sub">Heavy-duty contractor cord</span>
+        <span class="gb-cap">20 A max</span>
+      </button>
+    </div>
+    <div class="fgrid">
+      <div class="field">
+        <label>Outlet to first tree (ft)</label>
+        <input type="number" id="runLength" min="1" max="1000" placeholder="e.g. 50" oninput="calc()" />
+        <div class="hint">Distance from the power source to the first tree in the row</div>
+      </div>
+      <div class="field">
+        <label>Total run to last tree</label>
+        <div id="totalRunDisplay" style="background:#111;border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-size:1rem;color:#444;min-height:42px;">
+          —
+        </div>
+        <div class="hint">Outlet distance + tree spacing &times; (trees &minus; 1)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="card" id="resultsCard">
+    <div class="ctitle green">Results</div>
+    <div id="resultsBody">
+      <div class="placeholder">
+        <div class="pi">&#x26A1;</div>
+        Enter trees and light count above to see load calculations.
+      </div>
+    </div>
+  </div>
+
+  <div style="background:#0E0A08;border:1px solid #3A2010;border-radius:8px;padding:14px 16px;margin-top:4px;margin-bottom:12px;">
+    <div style="font-size:.68rem;color:#C87040;text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:6px;">Disclaimer</div>
+    <div style="font-size:.78rem;color:#7A5A40;line-height:1.6;">
+      All calculations are for <strong style="color:#A07050;">estimating purposes only.</strong>
+      Actual electrical loads may vary based on manufacturer specifications, bulb condition, temperature, and wiring configuration.
+      Always verify load requirements with a licensed electrician before installation.
+      Christmas Decor and its franchisees are <strong style="color:#A07050;">not responsible for electrical overloads, tripped breakers, equipment damage, or any other issues</strong> arising from reliance on these estimates.
+    </div>
+  </div>
+
+  <div class="footnote">
+    Safe load = 80% of circuit capacity per NEC guidelines &nbsp;|&nbsp;
+    Voltage drop = 2 &times; length &times; wire resistance &times; current (round-trip)<br>
+    Mini inc: 0.4 W/bulb &nbsp; Mini LED: 0.05 W/bulb &nbsp; C7 inc: 5 W &nbsp; C7 LED: 0.58 W &nbsp; C9 inc: 7 W &nbsp; C9 LED: 0.58 W &nbsp;&mdash;&nbsp;
+    16 AWG: 8.03 m&#x2126;/ft &nbsp; 14 AWG: 5.05 m&#x2126;/ft &nbsp; 12 AWG: 3.18 m&#x2126;/ft
+  </div>
+
+</div>
+
+<script>
+  /* ── Data ── */
+  const TYPES = {
+    'mini-inc': { wattsPerBulb: 0.40, isMini: true  },
+    'mini-led': { wattsPerBulb: 0.05, isMini: true  },
+    'c7-inc':   { wattsPerBulb: 5.00, isMini: false },
+    'c7-led':   { wattsPerBulb: 0.58, isMini: false },
+    'c9-inc':   { wattsPerBulb: 7.00, isMini: false },
+    'c9-led':   { wattsPerBulb: 0.58, isMini: false },
+  };
+  const TYPE_LABELS = {
+    'mini-inc': 'Mini — Incandescent', 'mini-led': 'Mini — LED',
+    'c7-inc':   'C7 — Incandescent',   'c7-led':   'C7 — LED',
+    'c9-inc':   'C9 — Incandescent',   'c9-led':   'C9 — LED',
+  };
+  const VOLTAGE = 120;
+  const SAFE_FACTOR = 0.80;
+
+  /* ── State ── */
+  let currentType   = 'mini-inc';
+  let inputMode     = 'bulbs';   // 'bulbs' | 'strands'
+  let strandSize    = 100;
+  let circuitAmps   = 15;
+  let gaugeR        = null;      // Ω/ft round-trip, null = no cord selected
+  let gaugeMaxAmps  = null;
+
+  /* ── Type selection ── */
+  function selectType(btn) {
+    document.querySelectorAll('.tbtn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    currentType = btn.dataset.type;
+    const isMini = TYPES[currentType].isMini;
+
+    document.getElementById('strandToggle').classList.toggle('hidden', !isMini);
+
+    if (!isMini) {
+      inputMode = 'bulbs';
+      document.querySelectorAll('.mbtn').forEach(b => b.classList.remove('on'));
+      document.querySelector('.mbtn').classList.add('on');
+      showBulbField();
+    } else {
+      updateMiniLabels();
+    }
+    calc();
+  }
+
+  /* ── Input mode (bulbs vs strands) ── */
+  function selectMode(mode, btn) {
+    inputMode = mode;
+    document.querySelectorAll('.mbtn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    if (mode === 'strands') {
+      showStrandField();
+    } else {
+      showBulbField();
+    }
+    calc();
+  }
+
+  function showBulbField() {
+    document.getElementById('bulbField').classList.remove('hidden');
+    document.getElementById('strandField').classList.add('hidden');
+    document.getElementById('strandSizeRow').classList.add('hidden');
+    updateMiniLabels();
+  }
+
+  function showStrandField() {
+    document.getElementById('bulbField').classList.add('hidden');
+    document.getElementById('strandField').classList.remove('hidden');
+    document.getElementById('strandSizeRow').classList.remove('hidden');
+    updateComputedBulbs();
+  }
+
+  function updateMiniLabels() {
+    const isMini = TYPES[currentType].isMini;
+    document.getElementById('lightsLabel').textContent = 'Bulbs per Tree';
+    document.getElementById('lightsHint').textContent =
+      isMini ? 'Total individual bulbs on one tree' : 'Total bulbs on one tree';
+    const examples = { 'mini-inc':'300','mini-led':'300','c7-inc':'50','c7-led':'50','c9-inc':'50','c9-led':'50' };
+    document.getElementById('lightsPerTree').placeholder = 'e.g. ' + examples[currentType];
+  }
+
+  /* ── Strand size ── */
+  function selectStrandSize(btn) {
+    document.querySelectorAll('.ssbtn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    strandSize = parseInt(btn.dataset.count);
+    updateComputedBulbs();
+    calc();
+  }
+
+  function updateComputedBulbs() {
+    const strands = parseInt(document.getElementById('strandsPerTree').value) || 0;
+    const el = document.getElementById('computedBulbs');
+    if (strands) {
+      el.textContent = `= ${(strandSize * strands).toLocaleString()} bulbs per tree`;
+    } else {
+      el.textContent = '';
+    }
+  }
+
+  /* ── Circuit ── */
+  function selectCircuit(btn) {
+    document.querySelectorAll('.cbtn').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    circuitAmps = parseInt(btn.dataset.amps);
+    calc();
+  }
+
+  /* ── Gauge ── */
+  function selectGauge(btn) {
+    const wasOn = btn.classList.contains('on');
+    document.querySelectorAll('.gbtn').forEach(b => b.classList.remove('on'));
+    if (!wasOn) {
+      btn.classList.add('on');
+      gaugeR       = parseFloat(btn.dataset.r);
+      gaugeMaxAmps = parseFloat(btn.dataset.maxamps);
+    } else {
+      gaugeR = null;
+      gaugeMaxAmps = null;
+    }
+    calc();
+  }
+
+  /* ── Helpers ── */
+  function fmt(n, dec = 1) {
+    return n.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  }
+
+  function getBulbs() {
+    if (inputMode === 'strands') {
+      const strands = parseInt(document.getElementById('strandsPerTree').value) || 0;
+      return strandSize * strands;
+    }
+    return parseInt(document.getElementById('lightsPerTree').value) || 0;
+  }
+
+  /* ── Main calc ── */
+  function calc() {
+    updateComputedBulbs();
+
+    const trees = parseInt(document.getElementById('numTrees').value) || 0;
+    const bulbs = getBulbs();
+    const body  = document.getElementById('resultsBody');
+
+    if (!trees || !bulbs) {
+      body.innerHTML = '<div class="placeholder"><div class="pi">&#x26A1;</div>Enter trees and light count above to see load calculations.</div>';
+      return;
+    }
+
+    const t            = TYPES[currentType];
+    const wattsPerTree = t.wattsPerBulb * bulbs;
+    const totalWatts   = wattsPerTree * trees;
+    const totalAmps    = totalWatts / VOLTAGE;
+    const safeWatts    = circuitAmps * VOLTAGE * SAFE_FACTOR;
+    const safeAmps     = circuitAmps * SAFE_FACTOR;
+    const circuitsNeeded  = Math.ceil(totalAmps / safeAmps);
+    const treesPerCircuit = Math.floor(safeAmps / (wattsPerTree / VOLTAGE));
+    const ampsPerTree     = wattsPerTree / VOLTAGE;
+
+    /* circuit status */
+    let statusHTML = '';
+    if (circuitsNeeded === 1 && totalAmps <= safeAmps * 0.75) {
+      statusHTML = `<div class="status ok"><span class="si">&#x2705;</span><div>
+        <strong>Comfortable load.</strong> All ${trees} tree${trees > 1 ? 's' : ''} fit safely on a single ${circuitAmps}A circuit
+        at ${fmt(totalAmps / safeAmps * 100, 0)}% of safe capacity.
+      </div></div>`;
+    } else if (circuitsNeeded === 1) {
+      statusHTML = `<div class="status warn"><span class="si">&#x26A0;&#xFE0F;</span><div>
+        <strong>Near capacity.</strong> All trees fit on one ${circuitAmps}A circuit but you're at
+        ${fmt(totalAmps / safeAmps * 100, 0)}% of the safe load limit. Consider splitting across two circuits.
+      </div></div>`;
+    } else {
+      statusHTML = `<div class="status danger"><span class="si">&#x1F50C;</span><div>
+        <strong>${circuitsNeeded} circuits required.</strong> Total draw of ${fmt(totalAmps)} A exceeds the safe load of a single
+        ${circuitAmps}A circuit. Run ${circuitsNeeded} separate circuits — or group ~${treesPerCircuit} trees per outlet.
+      </div></div>`;
+    }
+
+    /* total run to last tree */
+    const spacing    = parseFloat(document.getElementById('treeSpacing').value) || 0;
+    const runLen     = parseFloat(document.getElementById('runLength').value) || 0;
+    const totalRun   = runLen + spacing * Math.max(0, trees - 1);
+    const runDisplay = document.getElementById('totalRunDisplay');
+    if (runLen > 0 || spacing > 0) {
+      runDisplay.textContent = totalRun + ' ft';
+      runDisplay.style.color = 'var(--text)';
+    } else {
+      runDisplay.textContent = '—';
+      runDisplay.style.color = '#444';
+    }
+
+    /* voltage drop */
+    let vdHTML = '';
+
+    if (gaugeR && totalRun > 0) {
+      const vDrop   = gaugeR * totalRun * totalAmps;
+      const vAtLoad = VOLTAGE - vDrop;
+      const pctDrop = (vDrop / VOLTAGE) * 100;
+
+      let dropClass, dropIcon, dropMsg;
+      if (pctDrop <= 3) {
+        dropClass = 'vd-ok'; dropIcon = '&#x2705;';
+        dropMsg = `<strong>Acceptable drop.</strong> ${fmt(pctDrop)}% loss — lights will perform normally.`;
+      } else if (pctDrop <= 5) {
+        dropClass = 'vd-warn'; dropIcon = '&#x26A0;&#xFE0F;';
+        dropMsg = `<strong>Marginal drop.</strong> ${fmt(pctDrop)}% loss — incandescent lights may appear slightly dimmer. Consider a heavier gauge or shorter run.`;
+      } else {
+        dropClass = 'vd-danger'; dropIcon = '&#x26A0;&#xFE0F;';
+        dropMsg = `<strong>Excessive drop.</strong> ${fmt(pctDrop)}% loss — lights will dim noticeably. Upgrade to heavier gauge wire or reduce run length.`;
+      }
+
+      let cordOverloadHTML = '';
+      if (totalAmps > gaugeMaxAmps) {
+        cordOverloadHTML = `<div class="status danger" style="margin-top:8px;"><span class="si">&#x1F525;</span><div>
+          <strong>Cord overloaded.</strong> Total draw of ${fmt(totalAmps)} A exceeds this cord's ${gaugeMaxAmps} A rating.
+          Use a heavier gauge extension cord or reduce the number of trees per run.
+        </div></div>`;
+      }
+
+      vdHTML = `
+        <div class="vd-strip" style="margin-top:16px;">
+          <div class="vd-title">Voltage Drop — ${totalRun} ft total run (outlet to last tree)</div>
+          <div class="vd-grid">
+            <div class="vd-cell ${dropClass}">
+              <div class="vcl">Voltage Drop</div>
+              <div class="vcv">${fmt(vDrop, 2)} V</div>
+              <div class="vcu">${fmt(pctDrop)}% loss</div>
+            </div>
+            <div class="vd-cell ${dropClass}">
+              <div class="vcl">Voltage at Load</div>
+              <div class="vcv">${fmt(vAtLoad, 1)} V</div>
+              <div class="vcu">of ${VOLTAGE} V source</div>
+            </div>
+            <div class="vd-cell ${totalAmps > gaugeMaxAmps ? 'vd-danger' : 'vd-ok'}">
+              <div class="vcl">Cord Capacity</div>
+              <div class="vcv">${fmt(totalAmps)} A</div>
+              <div class="vcu">of ${gaugeMaxAmps} A max</div>
+            </div>
+          </div>
+        </div>
+        <div class="status ${pctDrop <= 3 ? 'ok' : pctDrop <= 5 ? 'warn' : 'danger'}" style="margin-top:8px;">
+          <span class="si">${dropIcon}</span><div>${dropMsg}</div>
+        </div>
+        ${cordOverloadHTML}
+      `;
+    } else if (gaugeR && totalRun === 0) {
+      vdHTML = `<div class="status blue" style="margin-top:14px;"><span class="si">&#x1F4CF;</span><div>
+        <strong>Enter the outlet distance</strong> (Step 4) or tree spacing (Step 2) to calculate voltage drop for the selected cord gauge.
+      </div></div>`;
+    }
+
+    /* strand info for breakdown */
+    const strandInfo = (inputMode === 'strands')
+      ? `<div class="brow"><span class="bk">Strand size</span><span class="bv">${strandSize}-count</span></div>
+         <div class="brow"><span class="bk">Strands per tree</span><span class="bv">${Math.round(bulbs / strandSize)}</span></div>`
+      : '';
+
+    body.innerHTML = `
+      <div class="results-grid">
+        <div class="rbox">
+          <div class="rl">Watts per Tree</div>
+          <div class="rv">${fmt(wattsPerTree, wattsPerTree < 10 ? 2 : 0)}</div>
+          <div class="ru">W</div>
+        </div>
+        <div class="rbox">
+          <div class="rl">Amps per Tree</div>
+          <div class="rv">${fmt(ampsPerTree, ampsPerTree < 1 ? 3 : 2)}</div>
+          <div class="ru">A @ 120V</div>
+        </div>
+        <div class="rbox big">
+          <div class="rl">Total Draw — All ${trees} Tree${trees > 1 ? 's' : ''}</div>
+          <div class="rv">${fmt(totalAmps)} A</div>
+          <div class="ru">${fmt(totalWatts, 0)} watts total</div>
+        </div>
+        <div class="rbox green">
+          <div class="rl">Safe Load (${circuitAmps}A Circuit)</div>
+          <div class="rv">${fmt(safeAmps)}</div>
+          <div class="ru">A max (80% NEC)</div>
+        </div>
+        <div class="rbox gold">
+          <div class="rl">Trees per Circuit</div>
+          <div class="rv">${treesPerCircuit > 0 ? treesPerCircuit : '&lt;1'}</div>
+          <div class="ru">max per ${circuitAmps}A outlet</div>
+        </div>
+        <div class="rbox ${circuitsNeeded > 1 ? '' : 'green'}">
+          <div class="rl">Circuits Needed</div>
+          <div class="rv">${circuitsNeeded}</div>
+          <div class="ru">${circuitAmps}A circuit${circuitsNeeded > 1 ? 's' : ''}</div>
+        </div>
+      </div>
+
+      ${statusHTML}
+      ${vdHTML}
+
+      <div class="breakdown">
+        <div class="brow"><span class="bk">Light type</span><span class="bv">${TYPE_LABELS[currentType]}</span></div>
+        <div class="brow"><span class="bk">Watts per bulb</span><span class="bv">${t.wattsPerBulb} W</span></div>
+        ${strandInfo}
+        <div class="brow"><span class="bk">Bulbs per tree</span><span class="bv">${bulbs.toLocaleString()}</span></div>
+        <div class="brow"><span class="bk">Number of trees</span><span class="bv">${trees.toLocaleString()}</span></div>
+        <div class="brow"><span class="bk">Watts per tree</span><span class="bv">${fmt(wattsPerTree, 1)} W</span></div>
+        <div class="brow"><span class="bk">Total wattage</span><span class="bv">${fmt(totalWatts, 0)} W</span></div>
+        <div class="brow"><span class="bk">Total amperage</span><span class="bv">${fmt(totalAmps)} A</span></div>
+        <div class="brow"><span class="bk">Circuit voltage</span><span class="bv">120 V</span></div>
+        <div class="brow"><span class="bk">Safe capacity per circuit</span><span class="bv">${fmt(safeWatts, 0)} W / ${fmt(safeAmps)} A</span></div>
+        <div class="brow"><span class="bk">Circuits required</span><span class="bv">${circuitsNeeded}</span></div>
+      </div>
+    `;
+  }
+</script>
+</body>
+</html>
